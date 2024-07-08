@@ -58,6 +58,40 @@ pub fn write_got_layout(
     Ok(())
 }
 
+pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
+    if !Path::new(location).is_file() {
+        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
+        // creating our file when we want to.
+        return Ok(HashMap::new());
+    }
+
+    let s =
+        read_to_string(location).map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
+    match format {
+        ConfigFormat::JSON => serde_json::from_str(&s)
+            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
+        ConfigFormat::TOML => {
+            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
+        }
+    }
+}
+
+pub fn write_got_layout(
+    got_entries: HashMap<String, u64>,
+    location: &str,
+    format: ConfigFormat,
+) -> Result<(), Diagnostic> {
+    let s = match format {
+        ConfigFormat::JSON => serde_json::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
+        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
+    };
+
+    write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))?;
+    Ok(())
+}
+
 pub struct VariableGenerator<'ctx, 'b> {
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
