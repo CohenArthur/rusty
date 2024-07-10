@@ -139,14 +139,18 @@ impl<'ink> CodeGen<'ink> {
         // functions and assign them indices in the GOT, taking into account prior indices.
         let program_globals =
             global_index.get_program_instances().into_iter().fold(Vec::new(), |mut acc, p| {
-                acc.push(p.get_name());
-                acc.push(p.get_qualified_name());
+                acc.push(p.get_name().to_owned());
+                acc.push(p.get_qualified_name().to_owned());
+                acc.push(format!("{}_instance", p.get_name()));
                 acc
             });
+        let test: Vec<_> =
+            program_globals.clone().into_iter().map(|s| crate::index::get_initializer_name(&s)).collect();
+
         let functions = global_index.get_pous().values().filter_map(|p| match p {
             PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: false, .. }
             | PouIndexEntry::FunctionBlock { name, linkage: LinkageType::Internal, .. } => {
-                Some(name.as_ref())
+                Some(String::from(name))
             }
             _ => None,
         });
@@ -154,12 +158,18 @@ impl<'ink> CodeGen<'ink> {
             .get_globals()
             .values()
             .map(VariableIndexEntry::get_qualified_name)
+            .map(String::from)
             .chain(program_globals)
             .chain(functions)
-            .map(str::to_lowercase);
+            .map(|s| s.to_lowercase())
+            .map(|s| (crate::index::get_initializer_name(&s), s))
+            .fold(Vec::new(), |mut acc, (s, s1)| {
+                acc.push(s);
+                acc.push(s1);
+                acc
+            });
 
-        let all_names: Vec<_> = all_names.collect();
-        dbg!(all_names.len());
+        // let all_names: Vec<_> = all_names.collect();
 
         if let Some(got_entries) = &mut *got_layout.lock().unwrap() {
             // let got_entries = read_got_layout(location.as_str(), *format)?;

@@ -166,11 +166,24 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.global_values.insert(variable_name.to_lowercase(), global_variable);
         self.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
+
+        // FIXME: Do we want to call .insert_new_got_index() here?
+
         Ok(())
     }
 
     pub fn associate_got_index(&mut self, variable_name: &str, index: u64) -> Result<(), Diagnostic> {
         self.got_indices.insert(variable_name.to_lowercase(), index);
+        Ok(())
+    }
+
+    pub fn insert_new_got_index(&mut self, variable_name: &str) -> Result<(), Diagnostic> {
+        eprintln!("llvm_index: inserting {variable_name}");
+        // FIXME: Does that start at 0 or 1?
+        let idx = self.got_indices.values().max().copied().unwrap_or(0);
+
+        self.got_indices.insert(variable_name.to_lowercase(), idx);
+
         Ok(())
     }
 
