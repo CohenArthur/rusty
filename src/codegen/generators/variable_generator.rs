@@ -6,7 +6,6 @@ use crate::{
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
-use indexmap::IndexSet;
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;

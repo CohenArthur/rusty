@@ -300,7 +300,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                     unit,
                     dependencies,
                     literals,
-                    todo!("give GOT layout for singlemodules?"),
+                    todo!("give GOT layout for single modules?"),
                 )
             })
             .reduce(|a, b| {
@@ -390,7 +390,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let got_layout = compile_options
             .got_layout_file
             .as_ref()
-            .map(|path| read_got_layout(&path, ConfigFormat::JSON))
+            .map(|path| read_got_layout(path, ConfigFormat::JSON))
             .transpose()?;
 
         let got_layout = Mutex::new(got_layout);
@@ -436,8 +436,6 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                             literals,
                             &got_layout,
                         )?;
-
-                        dbg!(module.persist_to_string());
 
                         module
                             .persist(

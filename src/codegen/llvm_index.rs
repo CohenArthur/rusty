@@ -5,7 +5,6 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use rustc_hash::FxHashMap;
-use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
@@ -57,8 +56,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         }
         for (name, index) in other.got_indices.drain() {
             self.got_indices.insert(name, index);
-
-            dbg!(&self.got_indices);
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
@@ -178,8 +175,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn insert_new_got_index(&mut self, variable_name: &str) -> Result<(), Diagnostic> {
-        eprintln!("llvm_index: inserting {variable_name}");
-        // FIXME: Does that start at 0 or 1?
         let idx = self.got_indices.values().max().copied().unwrap_or(0);
 
         self.got_indices.insert(variable_name.to_lowercase(), idx);

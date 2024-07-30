@@ -2,7 +2,6 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    fs,
     ops::Deref,
     path::{Path, PathBuf},
     sync::Mutex,
@@ -144,8 +143,6 @@ impl<'ink> CodeGen<'ink> {
                 acc.push(format!("{}_instance", p.get_name()));
                 acc
             });
-        let test: Vec<_> =
-            program_globals.clone().into_iter().map(|s| crate::index::get_initializer_name(&s)).collect();
 
         let functions = global_index.get_pous().values().filter_map(|p| match p {
             PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: false, .. }
@@ -169,10 +166,7 @@ impl<'ink> CodeGen<'ink> {
                 acc
             });
 
-        // let all_names: Vec<_> = all_names.collect();
-
         if let Some(got_entries) = &mut *got_layout.lock().unwrap() {
-            // let got_entries = read_got_layout(location.as_str(), *format)?;
             let mut new_symbols = Vec::new();
             let mut new_got_entries = HashMap::new();
             let mut new_got = HashMap::new();
@@ -198,10 +192,6 @@ impl<'ink> CodeGen<'ink> {
                 new_got.insert(idx, name.to_string());
             }
 
-            // FIXME: Remove - moved out of there
-            // Now we can write new_got_entries back out to a file.
-            // write_got_layout(new_got_entries, location.as_str(), *format)?;
-
             // Construct our GOT as a new global array. We initialise this array in the loader code.
             let got_size: u32 = new_got
                 .keys()
@@ -209,7 +199,6 @@ impl<'ink> CodeGen<'ink> {
                 .map_or(0, |m| *m + 1)
                 .try_into()
                 .expect("the computed custom GOT size is too large");
-            eprintln!("creating __custom_got array");
 
             let ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
             let empty_got = ptr_ty
